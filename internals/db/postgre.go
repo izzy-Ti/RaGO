@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/izzy-Ti/_server_setup/auth/internals/models"
+	"github.com/izzy-Ti/RaGO/internals/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

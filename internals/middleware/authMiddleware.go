@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/izzy-Ti/_server_setup/auth/internals/utils"
+	"github.com/izzy-Ti/RaGO/internals/utils"
 )
 
 var jwtSecret = []byte(os.Getenv("JWT_KEY"))

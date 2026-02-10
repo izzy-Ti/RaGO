@@ -1,4 +1,4 @@
-module github.com/izzy-Ti/_server_setup/auth
+module github.com/izzy-Ti/RaGO
 
 go 1.25.6
 

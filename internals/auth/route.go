@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/izzy-Ti/_server_setup/auth/internals/Middleware"
+	"github.com/izzy-Ti/RaGO/internals/Middleware"
 )
 
 func AuthRoutes(r *mux.Router) {

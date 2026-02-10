@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/izzy-Ti/_server_setup/auth/internals/auth"
-	"github.com/izzy-Ti/_server_setup/auth/internals/db"
-	"github.com/izzy-Ti/_server_setup/auth/internals/server"
+	"github.com/izzy-Ti/RaGO/internals/auth"
+	"github.com/izzy-Ti/RaGO/internals/db"
+	"github.com/izzy-Ti/RaGO/internals/server"
 	"github.com/joho/godotenv"
 )
 
