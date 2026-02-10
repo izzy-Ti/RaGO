@@ -1,11 +1,11 @@
-package Middleware
+package middleware
 
 import (
 	"context"
 	"net/http"
 	"os"
 
-	"github.com/izzy-Ti/RaGO/internals/utils"
+	utils "github.com/izzy-Ti/RaGO/internals/Utils"
 )
 
 var jwtSecret = []byte(os.Getenv("JWT_KEY"))
