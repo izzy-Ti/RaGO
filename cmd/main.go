@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -13,7 +14,11 @@ func main() {
 	_ = godotenv.Load()
 	db.Connect()
 	db.Migrate()
-	db.ConnectAstra()
+	DB, err := db.ConnectAstra()
+	if err != nil {
+		fmt.Errorf("failed to create vector collection: %s", err)
+	}
+	db.CreateVectorCollection(DB)
 
 	handler := server.New()
 	server.AuthRoutes(handler)

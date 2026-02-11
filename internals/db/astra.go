@@ -21,3 +21,20 @@ func SaveData(db *astradb.Db, data models.KnowledgeChunk) {
 
 	collection.InsertOne(ctx, data)
 }
+func CreateVectorCollection(db *astradb.Db) error {
+	ctx := context.Background()
+
+	opts := &options.CollectionOptions{
+		Vector: &options.VectorOptions{
+			Dimension: 1024,
+			Metric:    "cosine",
+		},
+	}
+	_, err := db.CreateCollection(ctx, "GORag", opts)
+	if err != nil {
+		log.Printf("error creating astra collection err= %s", err)
+		return nil
+	}
+	log.Printf("Created vector collection: %s (dim=%d metric=%s)\n", "GORag", 1536, "COSINE")
+	return nil
+}
