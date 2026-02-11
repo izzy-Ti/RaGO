@@ -2,6 +2,7 @@ package rag
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/izzy-Ti/RaGO/internals/embeddings"
 )
@@ -12,23 +13,23 @@ func Retriver(query string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("Generated embedding of length: %d\n", len(queryVec))
 	col := embeddings.AS.Collection("GORag3")
-	body := map[string]interface{}{
-		"find": map[string]interface{}{
-			"sort": map[string]interface{}{
-				"$vector": queryVec,
-			},
-			"options": map[string]interface{}{
-				"limit":             3,
-				"includeSimilarity": true,
-			},
+	filter := map[string]interface{}{
+		"sort": map[string]interface{}{
+			"$vector": queryVec,
+		},
+		"options": map[string]interface{}{
+			"limit":             3,
+			"includeSimilarity": true,
 		},
 	}
 
-	cursor := col.Find(ctx, body)
+	cursor := col.Find(ctx, filter)
 	defer cursor.Close(ctx)
 
 	var results []string
+	count := 0
 	for cursor.Next(ctx) {
 		var doc map[string]interface{}
 		if err := cursor.Decode(&doc); err != nil {
@@ -36,7 +37,9 @@ func Retriver(query string) ([]string, error) {
 		}
 		if content, ok := doc["content"].(string); ok {
 			results = append(results, content)
+			count++
 		}
 	}
+	fmt.Println("Retriever found documents:", count)
 	return results, nil
 }

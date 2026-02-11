@@ -23,11 +23,12 @@ func main() {
 	admin.ASTRA = DB
 	embeddings.AS = DB
 	db.CreateVectorCollection(DB)
-	embeddings.EmbedSite("https://israelashenafi.com/")
+	//embeddings.EmbedSite("https://israelashenafi.com/")
 
 	handler := server.New()
 	server.AuthRoutes(handler)
 	server.AdminRoutes(handler)
+	server.RagRoutes(handler)
 	log.Println("listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }

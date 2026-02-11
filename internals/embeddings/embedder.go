@@ -121,7 +121,7 @@ func EmbedSite(url string) ([][]float32, error) {
 			continue
 		}
 		docs := map[string]interface{}{
-			"content": text,
+			"content": chunk,
 			"$vector": vec,
 		}
 		col := AS.Collection("GORag3")

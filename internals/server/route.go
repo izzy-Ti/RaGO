@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/izzy-Ti/RaGO/internals/admin"
 	"github.com/izzy-Ti/RaGO/internals/auth"
+	"github.com/izzy-Ti/RaGO/internals/chat"
 	Middleware "github.com/izzy-Ti/RaGO/internals/middleware"
 )
 
@@ -24,4 +25,8 @@ func AuthRoutes(r *mux.Router) {
 func AdminRoutes(r *mux.Router) {
 	adminRouter := r.PathPrefix("/admin").Subrouter()
 	adminRouter.Handle("/post", Middleware.AdminAuth(http.HandlerFunc(admin.SaveAdminPost))).Methods("POST")
+}
+func RagRoutes(r *mux.Router) {
+	ragRouter := r.PathPrefix("/ask").Subrouter()
+	ragRouter.HandleFunc("/que", chat.Ask).Methods("POST")
 }
