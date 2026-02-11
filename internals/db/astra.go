@@ -10,18 +10,20 @@ import (
 	"github.com/izzy-Ti/RaGO/internals/models"
 )
 
+var As *astradb.Db
+
 func ConnectAstra() (*astradb.Db, error) {
 	client := astradb.NewClient(options.WithToken(os.Getenv("ASTRA")))
 	log.Println("Astradb connected")
 	return client.Database(os.Getenv("ASTRA_END_POINT")), nil
 }
-func SaveData(db *astradb.Db, data models.KnowledgeChunk) {
+func SaveData(As *astradb.Db, data models.KnowledgeChunk) {
 	ctx := context.Background()
-	collection := db.Collection("GoRag")
+	collection := As.Collection("GoRag")
 
 	collection.InsertOne(ctx, data)
 }
-func CreateVectorCollection(db *astradb.Db) error {
+func CreateVectorCollection(As *astradb.Db) error {
 	ctx := context.Background()
 
 	opts := &options.CollectionOptions{
@@ -30,7 +32,7 @@ func CreateVectorCollection(db *astradb.Db) error {
 			Metric:    "cosine",
 		},
 	}
-	_, err := db.CreateCollection(ctx, "GORag", opts)
+	_, err := As.CreateCollection(ctx, "GORag", opts)
 	if err != nil {
 		log.Printf("error creating astra collection err= %s", err)
 		return nil

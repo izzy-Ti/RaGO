@@ -13,7 +13,6 @@ import (
 var DB *gorm.DB
 
 func Connect() {
-
 	dsn := os.Getenv("DATABASE_URL")
 	log.Println("db connected")
 	var err error
