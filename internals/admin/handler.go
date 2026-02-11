@@ -24,8 +24,9 @@ type Response struct {
 }
 
 var jwtSecret = []byte(os.Getenv("JWT_KEY"))
+var ASTRA *astradb.Db
 
-func SaveAdminPost(db *astradb.Db, w http.ResponseWriter, r *http.Request) {
+func SaveAdminPost(w http.ResponseWriter, r *http.Request) {
 	token, err := r.Cookie("token")
 	if err != nil {
 		utils.WriteError(w, http.StatusUnauthorized, err)
@@ -53,7 +54,7 @@ func SaveAdminPost(db *astradb.Db, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	col := db.Collection("GORag")
+	col := ASTRA.Collection("GORag3")
 
 	fullText := req.Title + "\n\n" + req.Content
 

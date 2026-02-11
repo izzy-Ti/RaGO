@@ -2,7 +2,6 @@ package auth
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -49,14 +48,30 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var userModel models.User
+	if req.Email == "" || req.Name == "" || req.Password == "" {
+		res := Response{
+			Message: "Missing data",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
+		return
+	}
 	UserEmail := db.DB.Where("email = ?", req.Email).First(&userModel).Error
 	if UserEmail == nil {
-		utils.WriteJson(w, http.StatusUnauthorized, "Email already exists")
+		res := Response{
+			Message: "Email already exists",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
 		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		res := Response{
+			Message: "bcrypting error",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
 		return
 	}
 	user := models.User{
@@ -95,11 +110,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := utils.SendWelcomeEmail(req.Email, req.Name, tokenString); err != nil {
-		log.Println("Email send failed:", err)
+		res := Response{
+			Message: "Sorry cant send email",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
 		return
 	}
 
-	res := "login Successfully"
+	res := "Registration Successfully"
 	resp := Response{
 		Message: res,
 		Success: true,
@@ -116,14 +135,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 	var user models.User
 	if err := db.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
+		res := Response{
+			Message: "can't find the email",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
 		return
 	}
 	if err := bcrypt.CompareHashAndPassword(
 		[]byte(user.Password),
 		[]byte(req.Password),
 	); err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
+		res := Response{
+			Message: "Incorrcet credentials",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
 		return
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -172,17 +199,29 @@ func SendVerifyOTP(w http.ResponseWriter, r *http.Request) {
 	expiresAt := time.Now().Add(24 * time.Hour).UnixMilli()
 	token, err := r.Cookie("token")
 	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
+		res := Response{
+			Message: "Please login",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
 		return
 	}
 	userId, err := utils.UserId(token.Value, []byte(jwtSecret))
 	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
+		res := Response{
+			Message: "user not found",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
 		return
 	}
 	user, err := utils.GetUserByID(userId)
 	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
+		res := Response{
+			Message: "user not found",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
 		return
 	}
 	user.VerifyOTP = utils.GenerateOTP()

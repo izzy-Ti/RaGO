@@ -2,8 +2,10 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	astradb "github.com/datastax/astra-db-go"
 	"github.com/datastax/astra-db-go/options"
@@ -25,6 +27,7 @@ func SaveData(As *astradb.Db, data models.KnowledgeChunk) {
 }
 func CreateVectorCollection(As *astradb.Db) error {
 	ctx := context.Background()
+	name := "GORag3"
 
 	opts := &options.CollectionOptions{
 		Vector: &options.VectorOptions{
@@ -32,11 +35,14 @@ func CreateVectorCollection(As *astradb.Db) error {
 			Metric:    "cosine",
 		},
 	}
-	_, err := As.CreateCollection(ctx, "GORag", opts)
+	_, err := As.CreateCollection(ctx, name, opts)
 	if err != nil {
-		log.Printf("error creating astra collection err= %s", err)
-		return nil
+		if strings.Contains(err.Error(), "Collection already exists") {
+			log.Printf("Collection %s already exists, skipping", name)
+			return nil
+		}
+		return fmt.Errorf("failed to create collection: %w", err)
 	}
-	log.Printf("Created vector collection: %s (dim=%d metric=%s)\n", "GORag", 1536, "COSINE")
+	log.Printf("Created vector collection: %s (dim=%d metric=%s)\n", name, 1024, "COSINE")
 	return nil
 }

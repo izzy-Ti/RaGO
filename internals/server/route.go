@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/izzy-Ti/RaGO/internals/admin"
 	"github.com/izzy-Ti/RaGO/internals/auth"
 	Middleware "github.com/izzy-Ti/RaGO/internals/middleware"
 )
@@ -19,4 +20,8 @@ func AuthRoutes(r *mux.Router) {
 	userRouter.HandleFunc("/verifyreset", auth.ResetPassword).Methods("POST")
 	userRouter.Handle("/auth", Middleware.IsAuth(http.HandlerFunc(auth.AuthUser))).Methods("POST")
 	userRouter.Handle("/updateprofile", Middleware.IsAuth(http.HandlerFunc(auth.UpdateProfile))).Methods("POST")
+}
+func AdminRoutes(r *mux.Router) {
+	adminRouter := r.PathPrefix("/admin").Subrouter()
+	adminRouter.Handle("/post", Middleware.AdminAuth(http.HandlerFunc(admin.SaveAdminPost))).Methods("POST")
 }
