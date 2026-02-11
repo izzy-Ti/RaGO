@@ -122,7 +122,7 @@ func EmbedSite(url string) ([][]float32, error) {
 		}
 		docs := map[string]interface{}{
 			"content": text,
-			"$vector": vectors,
+			"$vector": vec,
 		}
 		col := AS.Collection("GORag3")
 		_, err = col.InsertOne(ctx, docs)

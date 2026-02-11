@@ -21,6 +21,7 @@ func main() {
 		fmt.Errorf("failed to create vector collection: %s", err)
 	}
 	admin.ASTRA = DB
+	embeddings.AS = DB
 	db.CreateVectorCollection(DB)
 	embeddings.EmbedSite("https://israelashenafi.com/")
 
