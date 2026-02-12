@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	utils "github.com/izzy-Ti/RaGO/internals/Utils"
+	utils "github.com/izzy-Ti/RaGO/internals/utils"
 )
 
 type Response struct {

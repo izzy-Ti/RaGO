@@ -66,7 +66,6 @@ func Generator(query string, contexts []string) (string, error) {
 
 	return result.Choices[0].Message.Content, nil
 }
-
 func RAG(query string) (string, error) {
 	contexts, err := Retriver(query)
 	if err != nil {

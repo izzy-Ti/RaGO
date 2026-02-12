@@ -5,10 +5,10 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	utils "github.com/izzy-Ti/RaGO/internals/Utils"
 	"github.com/izzy-Ti/RaGO/internals/db"
 	"github.com/izzy-Ti/RaGO/internals/models"
 	"github.com/izzy-Ti/RaGO/internals/rag"
+	utils "github.com/izzy-Ti/RaGO/internals/utils"
 )
 
 type ASK struct {

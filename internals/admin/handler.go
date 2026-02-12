@@ -6,7 +6,7 @@ import (
 	"os"
 
 	astradb "github.com/datastax/astra-db-go"
-	utils "github.com/izzy-Ti/RaGO/internals/Utils"
+	utils "github.com/izzy-Ti/RaGO/internals/utils"
 
 	DBS "github.com/izzy-Ti/RaGO/internals/db"
 	"github.com/izzy-Ti/RaGO/internals/embeddings"

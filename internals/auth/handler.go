@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	utils "github.com/izzy-Ti/RaGO/internals/Utils"
 	"github.com/izzy-Ti/RaGO/internals/db"
 	"github.com/izzy-Ti/RaGO/internals/models"
+	utils "github.com/izzy-Ti/RaGO/internals/utils"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/api/idtoken"
 	"gopkg.in/gomail.v2"
