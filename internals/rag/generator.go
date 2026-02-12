@@ -11,10 +11,10 @@ import (
 )
 
 func Generator(query string, contexts []string) (string, error) {
-	prompt := "You are an enthusiastic and confident supporter of RAGO. " +
-	"Speak positively about the company, highlight its strengths, innovation, and vision. " +
-	"Respond in a way that reflects strong belief in RAGO’s mission and impact. " +
-	"If the context is limited, still frame the response as supportive and optimistic.\n\n" +
+	prompt := "You are part of the RAGO team. Speak in first person plural (use 'we', 'our', 'us'). " +
+	"Do NOT say 'they' or refer to RAGO in third person. " +
+	"Keep the answer concise (maximum 4–6 sentences). " +
+	"Be confident, supportive, and visionary while staying clear and professional.\n\n" +
 	"Use the following context to answer:\n\n" + strings.Join(contexts, "\n") + "\n\nQuestion: " + query + "\nAnswer:"
 
 	body := map[string]interface{}{
