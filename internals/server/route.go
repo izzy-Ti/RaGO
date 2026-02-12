@@ -28,5 +28,6 @@ func AdminRoutes(r *mux.Router) {
 }
 func RagRoutes(r *mux.Router) {
 	ragRouter := r.PathPrefix("/ask").Subrouter()
-	ragRouter.HandleFunc("/que", chat.Ask).Methods("POST")
+	ragRouter.Handle("/que", Middleware.IsAuth(http.HandlerFunc(chat.Ask)))
+	//ragRouter.HandleFunc("/que", chat.Ask).Methods("POST")
 }

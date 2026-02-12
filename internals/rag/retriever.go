@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/datastax/astra-db-go/filter"
+	"github.com/datastax/astra-db-go/options"
 	"github.com/izzy-Ti/RaGO/internals/embeddings"
 )
 
@@ -15,24 +17,23 @@ func Retriver(query string) ([]string, error) {
 	}
 	fmt.Printf("Generated embedding of length: %d\n", len(queryVec))
 	col := embeddings.AS.Collection("GORag3")
-	filter := map[string]interface{}{
-		"sort": map[string]interface{}{
-			"$vector": queryVec,
-		},
-		"options": map[string]interface{}{
-			"limit":             3,
-			"includeSimilarity": true,
-		},
+	cursor := col.Find(ctx, filter.F{},
+		options.WithCollectionLimit(3),
+		options.WithCollectionSort(map[string]interface{}{"$vector": queryVec}),
+		options.WithCollectionIncludeSimilarity(true),
+	)
+	if err := cursor.Err(); err != nil {
+		fmt.Println("CRITICAL: Search Error:", err)
 	}
-
-	cursor := col.Find(ctx, filter)
 	defer cursor.Close(ctx)
-
+	total, _ := col.CountDocuments(ctx, map[string]interface{}{}, 0)
+	fmt.Println("Total documents in collection:", total)
 	var results []string
 	count := 0
 	for cursor.Next(ctx) {
 		var doc map[string]interface{}
 		if err := cursor.Decode(&doc); err != nil {
+			fmt.Println("Decode error:", err)
 			continue
 		}
 		if content, ok := doc["content"].(string); ok {
