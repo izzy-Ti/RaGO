@@ -109,13 +109,17 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	if err := utils.SendWelcomeEmail(req.Email, req.Name, tokenString); err != nil {
-		res := Response{
-			Message: "Sorry cant send email",
-			Success: false,
-		}
-		utils.WriteJson(w, http.StatusUnauthorized, res)
-		return
+	verificationUrl := ""
+	subject := "Password reset successfull"
+	html := fmt.Sprintf(`
+        <p>Hi %s,</p>
+        <p>Welcome! Please verify your email by clicking the link below:</p>
+        <a href="%s">Verify Email</a>
+        <p>If this wasn’t you, please ignore this email.</p>
+    `, user.Name, verificationUrl)
+	er := utils.Sendemail(user.Email, user.Name, subject, html)
+	if er != nil {
+		utils.WriteError(w, http.StatusUnauthorized, er)
 	}
 
 	res := "Registration Successfully"
@@ -175,6 +179,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Path:    "/",
 		Expires: time.Now().Add(24 * time.Hour),
 	})
+	subject := "Login alert"
+	html := `<h2 style="color:#2e7d32;">Login Successful</h2>
+			<p>You have successfully logged into your account.</p>
+			<p>If this was you, no further action is required.</p>
+			<p>If you do not recognize this login activity, please reset your password immediately to secure your account.</p>
+			<hr style="margin-top:20px;">
+			<p style="font-size:12px;color:#888;">
+			This is an automated message. Please do not reply to this email.
+			</p>
+			`
+	er := utils.Sendemail(req.Email, user.Name, subject, html)
+	if er != nil {
+		utils.WriteError(w, http.StatusUnauthorized, er)
+	}
 	res := "login Successfully"
 	resp := Response{
 		Message: res,
@@ -228,7 +246,19 @@ func SendVerifyOTP(w http.ResponseWriter, r *http.Request) {
 	user.OTPExpireAt = int64(expiresAt)
 	db.DB.Save(user)
 
-	utils.SendOTPMail(user.Email, user.Name, user.VerifyOTP)
+	subject := "OTP verfication"
+	html := fmt.Sprintf(`
+		<p>Hi %s,</p>
+		<p>Your one-time verification code is:</p>
+		<h2 style="letter-spacing:2px;">%s</h2>
+		<p>This code will expire soon. Do not share it with anyone.</p>
+		<p>If you didn’t request this, you can ignore this email.</p>
+	`, user.Name, user.VerifyOTP)
+
+	er := utils.Sendemail(user.Email, user.Name, subject, html)
+	if er != nil {
+		utils.WriteError(w, http.StatusUnauthorized, er)
+	}
 	res := Response{
 		Message: "OTP sent successfully",
 		Success: true,
@@ -283,6 +313,7 @@ func VerifyOTP(w http.ResponseWriter, r *http.Request) {
 
 	d := gomail.NewDialer("smtp.gmail.com", 465, os.Getenv("EMAIL"), os.Getenv("PASSWORD"))
 	d.DialAndSend(m)
+
 	res := Response{
 		Message: "OTP sent successfully",
 		Success: true,
@@ -307,13 +338,24 @@ func SendResetOTP(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusUnauthorized, err)
 		return
 	}
-	email := user.Email
 	user.ResetOTP = utils.GenerateOTP()
 	user.ResetOTPExpireAt = int64(expiresAt)
 
 	db.DB.Save(user)
 
-	utils.SendOTPMail(email, user.Name, user.ResetOTP)
+	subject := "OTP verfication"
+	html := fmt.Sprintf(`
+		<p>Hi %s,</p>
+		<p>Your one-time verification code is:</p>
+		<h2 style="letter-spacing:2px;">%s</h2>
+		<p>This code will expire soon. Do not share it with anyone.</p>
+		<p>If you didn’t request this, you can ignore this email.</p>
+	`, user.Name, user.ResetOTP)
+
+	er := utils.Sendemail(user.Email, user.Name, subject, html)
+	if er != nil {
+		utils.WriteError(w, http.StatusUnauthorized, er)
+	}
 	res := Response{
 		Message: "otp sent successfully",
 		Success: true,
@@ -364,19 +406,18 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Password = string(hashedPassword)
 	db.DB.Save(user)
-	m := gomail.NewMessage()
-
-	m.SetHeader("From", os.Getenv("EMAIL"))
-	m.SetHeader("To", user.Email)
-	m.SetHeader("Subject", "Your password has been reset successfully")
-	m.SetBody("text/html", fmt.Sprintf(`
+	subject := "Password reset successfull"
+	html := `
 		<p>Hi %s,</p>
 		<p>Your password has been successfully reset.</p>
-		<p>If you did not perform this action, you can reply to this email directly.</p>
-	`, user.Name))
+		<p>If you made this change, you can now log in with your new password.</p>
+		<p>If you did not request this password reset, please contact support immediately to secure your account.</p>
+	`
 
-	d := gomail.NewDialer("smtp.gmail.com", 465, os.Getenv("EMAIL"), os.Getenv("PASSWORD"))
-	d.DialAndSend(m)
+	er := utils.Sendemail(user.Email, user.Name, subject, html)
+	if er != nil {
+		utils.WriteError(w, http.StatusUnauthorized, er)
+	}
 
 	res := Response{
 		Message: "password changed successfully",
