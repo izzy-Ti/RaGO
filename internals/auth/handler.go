@@ -102,9 +102,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		HttpOnly: true,
 		Secure:   true,
-		SameSite:  http.SameSiteNoneMode,
-		Path:    "/",
-		Expires: time.Now().Add(24 * time.Hour),
+		SameSite: http.SameSiteNoneMode,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
 	})
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
@@ -172,9 +172,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		HttpOnly: true,
 		Secure:   true,
-		SameSite:  http.SameSiteNoneMode,
-		Path:    "/",
-		Expires: time.Now().Add(24 * time.Hour),
+		SameSite: http.SameSiteNoneMode,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
 	})
 	subject := "Login alert"
 	html := `<h2 style="color:#2e7d32;">Login Successful</h2>
@@ -501,15 +501,11 @@ func GoogleAuth(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    tokenString,
-		HttpOnly: utils.IsProd(),
-		SameSite: func() http.SameSite {
-			if utils.IsProd() {
-				return http.SameSiteStrictMode
-			}
-			return http.SameSiteLaxMode
-		}(),
-		Path:    "/",
-		Expires: time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
 	})
 	res := "login Successfully"
 	resp := Response{
