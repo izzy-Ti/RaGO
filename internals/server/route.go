@@ -19,6 +19,7 @@ func AuthRoutes(r *mux.Router) {
 	userRouter.HandleFunc("/verifyotp", auth.VerifyOTP).Methods("POST")
 	userRouter.HandleFunc("/sendresetotp", auth.SendResetOTP).Methods("POST")
 	userRouter.HandleFunc("/verifyreset", auth.ResetPassword).Methods("POST")
+	userRouter.HandleFunc("/googleauth", auth.GoogleAuth).Methods("POST")
 	userRouter.Handle("/auth", Middleware.IsAuth(http.HandlerFunc(auth.AuthUser))).Methods("POST")
 	userRouter.Handle("/updateprofile", Middleware.IsAuth(http.HandlerFunc(auth.UpdateProfile))).Methods("POST")
 }
