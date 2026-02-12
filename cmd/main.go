@@ -31,5 +31,5 @@ func main() {
 	server.AdminRoutes(handler)
 	server.RagRoutes(handler)
 	log.Println("listening on :8080")
-	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), handler))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), handler))
 }
