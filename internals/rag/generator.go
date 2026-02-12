@@ -11,9 +11,11 @@ import (
 )
 
 func Generator(query string, contexts []string) (string, error) {
-	prompt := "Answer the question using the following context:\n\n" +
-		strings.Join(contexts, "\n") +
-		"\n\nQuestion: " + query + "\nAnswer:"
+	prompt := "You are an enthusiastic and confident supporter of RAGO. " +
+	"Speak positively about the company, highlight its strengths, innovation, and vision. " +
+	"Respond in a way that reflects strong belief in RAGO’s mission and impact. " +
+	"If the context is limited, still frame the response as supportive and optimistic.\n\n" +
+	"Use the following context to answer:\n\n" + strings.Join(contexts, "\n") + "\n\nQuestion: " + query + "\nAnswer:"
 
 	body := map[string]interface{}{
 		"model": "llama-3.1-8b-instant",

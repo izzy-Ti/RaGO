@@ -25,7 +25,7 @@ func main() {
 	admin.ASTRA = DB
 	embeddings.AS = DB
 	db.CreateVectorCollection(DB)
-	//embeddings.EmbedSite("https://israelashenafi.com/")
+	embeddings.EmbedSite("https://ra-go-frontend.vercel.app/")
 
 	handler := server.New()
 	server.AuthRoutes(handler)
