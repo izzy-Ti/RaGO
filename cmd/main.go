@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/izzy-Ti/RaGO/internals/admin"
 	"github.com/izzy-Ti/RaGO/internals/db"
@@ -30,5 +31,5 @@ func main() {
 	server.AdminRoutes(handler)
 	server.RagRoutes(handler)
 	log.Println("listening on :8080")
-	log.Fatal(http.ListenAndServe(":10000 ", handler))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), handler))
 }
