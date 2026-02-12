@@ -15,7 +15,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/izzy-Ti/RaGO/internals/db"
 	"github.com/izzy-Ti/RaGO/internals/models"
-	"gopkg.in/gomail.v2"
 )
 
 const brevoURL = "https://api.brevo.com/v3/smtp/email"
@@ -37,24 +36,6 @@ func WriteError(w http.ResponseWriter, status int, err error) {
 func IsProd() bool {
 	return os.Getenv("APP_ENV") == "production"
 }
-func SendWelcomeEmail(to, name, token string) error {
-	verificationUrl := fmt.Sprintf("https://fmbls.vercel.app/verifyemail")
-
-	m := gomail.NewMessage()
-
-	m.SetHeader("From", os.Getenv("EMAIL"))
-	m.SetHeader("To", to)
-	m.SetHeader("Subject", "Welcome! Please verify your email")
-	m.SetBody("text/html", fmt.Sprintf(`
-        <p>Hi %s,</p>
-        <p>Welcome! Please verify your email by clicking the link below:</p>
-        <a href="%s">Verify Email</a>
-        <p>If this wasn’t you, please ignore this email.</p>
-    `, name, verificationUrl))
-
-	d := gomail.NewDialer("smtp.gmail.com", 465, os.Getenv("EMAIL"), os.Getenv("PASSWORD"))
-	return d.DialAndSend(m)
-}
 func UserId(tokenStr string, jwtSecret []byte) (uint, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
 		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
@@ -63,7 +44,7 @@ func UserId(tokenStr string, jwtSecret []byte) (uint, error) {
 		return jwtSecret, nil
 	})
 	if err != nil {
-		log.Println("Token parsing error:", err) // log the error for debugging
+		log.Println("Token parsing error:", err)
 		return 0, errors.New("invalid token")
 	}
 
@@ -85,22 +66,6 @@ func GetUserByID(userID uint) (*models.User, error) {
 func GenerateOTP() string {
 	rand.Seed(time.Now().UnixNano())
 	return strconv.Itoa(100000 + rand.Intn(900000))
-}
-func SendOTPMail(to, name, otp string) error {
-	m := gomail.NewMessage()
-
-	m.SetHeader("From", os.Getenv("EMAIL"))
-	m.SetHeader("To", to)
-	m.SetHeader("Subject", "Welcome! Please verify your email")
-	m.SetBody("text/html", fmt.Sprintf(`
-		<p>Hi %s,</p>
-		<p>Your one-time verification code is:</p>
-		<h2>%s</h2>
-		<p>This code will expire soon. Do not share it with anyone.</p>
-		<p>If you didn’t request this, you can ignore this email.</p>
-		`, name, otp))
-	d := gomail.NewDialer("smtp.gmail.com", 465, os.Getenv("EMAIL"), os.Getenv("PASSWORD"))
-	return d.DialAndSend(m)
 }
 func Sendemail(toEmail, toName, subject, htmlContent string) error {
 	body := map[string]interface{}{

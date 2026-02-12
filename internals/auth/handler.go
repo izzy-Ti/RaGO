@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/izzy-Ti/RaGO/internals/db"
 	"github.com/izzy-Ti/RaGO/internals/models"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/api/idtoken"
 	"gopkg.in/gomail.v2"
 )
 
@@ -36,6 +38,9 @@ type otpREQ struct {
 type Response struct {
 	Message string `json:"message"`
 	Success bool   `json:"success"`
+}
+type GoogleRequest struct {
+	Token string `json:"token"`
 }
 
 var jwtSecret = []byte(os.Getenv("JWT_KEY"))
@@ -448,4 +453,77 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, http.StatusOK, res)
 
 }
-func GoogleAuth(w http.ResponseWriter, r *http.Request) {}
+func GoogleAuth(w http.ResponseWriter, r *http.Request) {
+	var req GoogleRequest
+	utils.ParseJSON(r, &req)
+	if req.Token == "" {
+		res := Response{
+			Message: "Missing data",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, res)
+		return
+	}
+	payload, err := idtoken.Validate(context.Background(), req.Token, os.Getenv("GOOGLE_CLIENT_ID"))
+	if err != nil {
+		http.Error(w, "invalid google token", http.StatusUnauthorized)
+		return
+	}
+	email := payload.Claims["email"].(string)
+	name := payload.Claims["name"].(string)
+	picture, _ := payload.Claims["picture"].(string)
+	sub := payload.Claims["sub"].(string)
+
+	var user models.User
+
+	err = db.DB.Where("email=?", email).First(&user).Error
+	if err != nil {
+		user = models.User{
+			Name:          name,
+			Email:         email,
+			Avater:        picture,
+			GoogleId:      sub,
+			AuthType:      "google",
+			IsAccVerified: true,
+		}
+		db.DB.Create(&user)
+	} else {
+		if !user.IsAccVerified {
+			user.Name = name
+			user.Avater = picture
+			user.GoogleId = sub
+			user.AuthType = "google"
+			user.IsAccVerified = true
+			db.DB.Save(&user)
+		}
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.ID,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(),
+	})
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    tokenString,
+		HttpOnly: utils.IsProd(),
+		SameSite: func() http.SameSite {
+			if utils.IsProd() {
+				return http.SameSiteStrictMode
+			}
+			return http.SameSiteLaxMode
+		}(),
+		Path:    "/",
+		Expires: time.Now().Add(24 * time.Hour),
+	})
+	res := "login Successfully"
+	resp := Response{
+		Message: res,
+		Success: true,
+	}
+	utils.WriteJson(w, http.StatusOK, resp)
+
+}
