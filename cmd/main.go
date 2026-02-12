@@ -11,6 +11,7 @@ import (
 	"github.com/izzy-Ti/RaGO/internals/embeddings"
 	"github.com/izzy-Ti/RaGO/internals/server"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -30,6 +31,15 @@ func main() {
 	server.AuthRoutes(handler)
 	server.AdminRoutes(handler)
 	server.RagRoutes(handler)
+
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: false,
+		Debug:            false,
+	})
+	handlerWithCORS := corsHandler.Handler(handler)
 	log.Println("listening on :8080")
-	log.Fatal(http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), handler))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), handlerWithCORS))
 }
