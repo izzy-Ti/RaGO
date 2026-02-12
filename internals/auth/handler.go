@@ -100,13 +100,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    tokenString,
-		HttpOnly: utils.IsProd(),
-		SameSite: func() http.SameSite {
-			if utils.IsProd() {
-				return http.SameSiteStrictMode
-			}
-			return http.SameSiteLaxMode
-		}(),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite:  http.SameSiteNoneMode,
 		Path:    "/",
 		Expires: time.Now().Add(24 * time.Hour),
 	})
