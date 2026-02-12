@@ -26,6 +26,7 @@ func AuthRoutes(r *mux.Router) {
 func AdminRoutes(r *mux.Router) {
 	adminRouter := r.PathPrefix("/admin").Subrouter()
 	adminRouter.Handle("/post", Middleware.AdminAuth(http.HandlerFunc(admin.SaveAdminPost))).Methods("POST")
+	adminRouter.HandleFunc("/allposts", admin.AllPosts).Methods("GET")
 }
 func RagRoutes(r *mux.Router) {
 	ragRouter := r.PathPrefix("/ask").Subrouter()

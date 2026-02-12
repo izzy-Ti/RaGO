@@ -22,6 +22,11 @@ type Response struct {
 	Message string `json:"message"`
 	Success bool   `json:"success"`
 }
+type PostResponse struct {
+	Posts   interface{} `json:"posts"`
+	Message string      `json:"message"`
+	Success bool        `json:"success"`
+}
 
 var jwtSecret = []byte(os.Getenv("JWT_KEY"))
 var ASTRA *astradb.Db
@@ -79,5 +84,23 @@ func SaveAdminPost(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 	}
 	utils.WriteJson(w, http.StatusOK, res)
+
+}
+func AllPosts(w http.ResponseWriter, r *http.Request) {
+	var posts []models.Posts
+
+	err := DBS.DB.Order("created_at DESC").Find(&posts).Error
+	if err != nil {
+		utils.WriteJson(w, http.StatusUnauthorized, Response{
+			Message: "Database error",
+			Success: false,
+		})
+	}
+
+	utils.WriteJson(w, http.StatusOK, PostResponse{
+		Posts:   posts,
+		Message: "fetch successfull",
+		Success: true,
+	})
 
 }

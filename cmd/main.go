@@ -33,13 +33,13 @@ func main() {
 	server.RagRoutes(handler)
 
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"*"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		Debug:            false,
 	})
 	handlerWithCORS := corsHandler.Handler(handler)
-	log.Println("listening on :8080")
+	log.Println("listening on" + os.Getenv("PORT"))
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), handlerWithCORS))
 }

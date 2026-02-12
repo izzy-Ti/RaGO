@@ -13,7 +13,7 @@ import (
 
 type ASK struct {
 	Query  string `json:"query"`
-	ChatID uint   `json:"chatId`
+	ChatID uint   `json:"chatId"`
 }
 type Response struct {
 	Ans     string `json:"answer"`
@@ -37,11 +37,15 @@ func Ask(w http.ResponseWriter, r *http.Request) {
 	}
 	user, _ := r.Context().Value("user").(*models.User)
 	var chat models.Chat
+	title := req.Query
+	if len(title) > 20 {
+		title = title[:20]
+	}
 
 	if req.ChatID == 0 {
 		chat = models.Chat{
 			UserID: user.ID,
-			Title:  req.Query[:20],
+			Title:  title,
 		}
 		db.DB.Create(&chat)
 	} else {
@@ -57,7 +61,11 @@ func Ask(w http.ResponseWriter, r *http.Request) {
 
 	ans, err := rag.RAG(req.Query)
 	if err != nil {
-		utils.WriteJson(w, http.StatusUnauthorized, err)
+		utils.WriteJson(w, http.StatusInternalServerError, Response{
+			Message: "RAG processing failed",
+			Success: false,
+		})
+		return
 	}
 	assistantMsg := models.Message{
 		ChatID:  chat.ID,
@@ -86,7 +94,7 @@ func GetChat(w http.ResponseWriter, r *http.Request) {
 		Message: "answer successfull",
 		Success: true,
 	}
-	utils.WriteJson(w, http.StatusUnauthorized, res)
+	utils.WriteJson(w, http.StatusOK, res)
 }
 func GetMessagesByChatID(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(*models.User)
@@ -126,8 +134,7 @@ func GetMessagesByChatID(w http.ResponseWriter, r *http.Request) {
 	res := ResponseChat{
 		Ans:     messages,
 		Message: "successfully fetched his",
-		Success: false,
+		Success: true,
 	}
-	utils.WriteJson(w, http.StatusNotFound, res)
-
+	utils.WriteJson(w, http.StatusOK, res)
 }
