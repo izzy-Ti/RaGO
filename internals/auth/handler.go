@@ -245,17 +245,8 @@ func VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
-	token, err := r.Cookie("token")
-	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
-		return
-	}
-	userId, err := utils.UserId(token.Value, []byte(jwtSecret))
-	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
-		return
-	}
-	user, err := utils.GetUserByID(userId)
+	var user models.User
+	db.DB.Where("email = ?", req.Email).First(&user)
 	if err != nil {
 		utils.WriteError(w, http.StatusUnauthorized, err)
 		return
