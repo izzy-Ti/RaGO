@@ -35,6 +35,9 @@ type otpREQ struct {
 	Otp      string `json:"otp"`
 	Password string `json:"password"`
 }
+type ResetotpREQ struct {
+	Email string `json:"email"`
+}
 type Response struct {
 	Message string `json:"message"`
 	Success bool   `json:"success"`
@@ -323,18 +326,23 @@ func AuthUser(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, http.StatusOK, user)
 }
 func SendResetOTP(w http.ResponseWriter, r *http.Request) {
+	var req ResetotpREQ
+	utils.ParseJSON(r, &req)
 	expiresAt := time.Now().Add(24 * time.Hour).UnixMilli()
-	token, _ := r.Cookie("token")
-	userId, err := utils.UserId(token.Value, []byte(jwtSecret))
-	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
-		return
-	}
-	user, err := utils.GetUserByID(userId)
-	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
-		return
-	}
+
+	// token, _ := r.Cookie("token")
+	// userId, err := utils.UserId(token.Value, []byte(jwtSecret))
+	// if err != nil {
+	// 	utils.WriteError(w, http.StatusUnauthorized, err)
+	// 	return
+	// }
+	// user, err := utils.GetUserByID(userId)
+	// if err != nil {
+	// 	utils.WriteError(w, http.StatusUnauthorized, err)
+	// 	return
+	// }
+	var user models.User
+	db.DB.Where("email = ?", req.Email).First(&user)
 	user.ResetOTP = utils.GenerateOTP()
 	user.ResetOTPExpireAt = int64(expiresAt)
 
