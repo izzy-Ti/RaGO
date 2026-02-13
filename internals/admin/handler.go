@@ -2,15 +2,20 @@ package admin
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"os"
+	"strings"
+	"unicode/utf8"
 
 	astradb "github.com/datastax/astra-db-go"
+	"github.com/izzy-Ti/RaGO/internals/db"
 	utils "github.com/izzy-Ti/RaGO/internals/utils"
 
 	DBS "github.com/izzy-Ti/RaGO/internals/db"
 	"github.com/izzy-Ti/RaGO/internals/embeddings"
 	"github.com/izzy-Ti/RaGO/internals/models"
+	"github.com/ledongthuc/pdf"
 )
 
 type AdminReq struct {
@@ -103,4 +108,104 @@ func AllPosts(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 	})
 
+}
+func UploadSitePDF(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(10 << 20)
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	defer file.Close()
+	os.MkdirAll("./temp", os.ModePerm)
+	tmpPath := "./temp/" + header.Filename
+	out, err := os.Create(tmpPath)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	defer out.Close()
+	io.Copy(out, file)
+
+	f, err := os.Open(tmpPath)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	defer f.Close()
+	var pdfText strings.Builder
+
+	reader, err := pdf.NewReader(f, header.Size)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	totalPage := reader.NumPage()
+
+	for i := 1; i <= totalPage; i++ {
+		page := reader.Page(i)
+		if page.V.IsNull() {
+			continue
+		}
+		content, _ := page.GetPlainText(nil)
+		pdfText.WriteString(content)
+	}
+	vec, err := embeddings.EmbedText(pdfText.String())
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, err)
+		return
+	}
+	col := ASTRA.Collection("GORag3")
+	ctx := context.Background()
+
+	astrapost := embeddings.Posts{
+		Title:   header.Filename,
+		Content: pdfText.String(),
+		Vector:  vec,
+	}
+
+	if _, err := col.InsertOne(ctx, astrapost); err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	content := pdfText.String()
+	if len(content) > 250 {
+		content = content[:250]
+	}
+	if !utf8.ValidString(content) {
+		content = string([]rune(content))
+	}
+	ragKNow := &models.RagKnowladge{
+		Title:   header.Filename,
+		Content: content,
+	}
+	if err := db.DB.Create(ragKNow).Error; err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	res := Response{
+		Message: "post successfully",
+		Success: true,
+	}
+	utils.WriteJson(w, http.StatusOK, res)
+
+}
+func AllKnow(w http.ResponseWriter, r *http.Request) {
+	var know []models.RagKnowladge
+
+	err := db.DB.Find(&know).Error
+	if err != nil {
+		utils.WriteJson(w, http.StatusUnauthorized, Response{
+			Message: "Database error",
+			Success: false,
+		})
+		return
+	}
+
+	utils.WriteJson(w, http.StatusOK, PostResponse{
+		Posts:   know,
+		Message: "fetch successfull",
+		Success: true,
+	})
 }

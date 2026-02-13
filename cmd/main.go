@@ -25,7 +25,7 @@ func main() {
 	admin.ASTRA = DB
 	embeddings.AS = DB
 	db.CreateVectorCollection(DB)
-	embeddings.EmbedSite("https://ra-go-frontend.vercel.app/")
+	//embeddings.EmbedSite("https://ra-go-frontend.vercel.app/about")
 
 	handler := server.New()
 	server.AuthRoutes(handler)
@@ -40,6 +40,6 @@ func main() {
 		Debug:            false,
 	})
 	handlerWithCORS := corsHandler.Handler(handler)
-	log.Println("listening on" + os.Getenv("PORT"))
+	log.Println("listening on " + os.Getenv("PORT"))
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), handlerWithCORS))
 }
