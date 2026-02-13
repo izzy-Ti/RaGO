@@ -33,6 +33,7 @@ type LoginRequest struct {
 }
 type otpREQ struct {
 	Otp      string `json:"otp"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 type ResetotpREQ struct {
@@ -343,21 +344,8 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 	var req otpREQ
 
 	err := utils.ParseJSON(r, &req)
-	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
-		return
-	}
-	token, _ := r.Cookie("token")
-	userId, err := utils.UserId(token.Value, []byte(jwtSecret))
-	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
-		return
-	}
-	user, err := utils.GetUserByID(userId)
-	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, err)
-		return
-	}
+	var user models.User
+	db.DB.Where("email = ?", req.Email).First(&user)
 	if user.ResetOTP != req.Otp || user.ResetOTP == "" {
 		res := Response{
 			Message: "invalid otp",
@@ -383,7 +371,7 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 	db.DB.Save(user)
 	subject := "Password reset successful"
 	html := `
-		<p>Hi %s,</p>
+		<p>Hi,</p>
 		<p>Your password has been successfully reset.</p>
 		<p>If you made this change, you can now log in with your new password.</p>
 		<p>If you did not request this password reset, please contact support immediately to secure your account.</p>
