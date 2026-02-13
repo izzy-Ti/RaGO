@@ -161,7 +161,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		Expires:  time.Now().Add(24 * time.Hour),
 	})
-	subject := "Login alert"
+	subject := "Login Successful"
 	html := `<h2 style="color:#2e7d32;">Login Successful</h2>
 			<p>You have successfully logged into your account.</p>
 			<p>If this was you, no further action is required.</p>
@@ -311,18 +311,6 @@ func SendResetOTP(w http.ResponseWriter, r *http.Request) {
 	var req ResetotpREQ
 	utils.ParseJSON(r, &req)
 	expiresAt := time.Now().Add(24 * time.Hour).UnixMilli()
-
-	// token, _ := r.Cookie("token")
-	// userId, err := utils.UserId(token.Value, []byte(jwtSecret))
-	// if err != nil {
-	// 	utils.WriteError(w, http.StatusUnauthorized, err)
-	// 	return
-	// }
-	// user, err := utils.GetUserByID(userId)
-	// if err != nil {
-	// 	utils.WriteError(w, http.StatusUnauthorized, err)
-	// 	return
-	// }
 	var user models.User
 	db.DB.Where("email = ?", req.Email).First(&user)
 	user.ResetOTP = utils.GenerateOTP()
@@ -330,7 +318,7 @@ func SendResetOTP(w http.ResponseWriter, r *http.Request) {
 
 	db.DB.Save(user)
 
-	subject := "OTP verfication"
+	subject := "Reset Password OTP verfication"
 	html := fmt.Sprintf(`
 		<p>Hi %s,</p>
 		<p>Your one-time verification code is:</p>
@@ -393,7 +381,7 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Password = string(hashedPassword)
 	db.DB.Save(user)
-	subject := "Password reset successfull"
+	subject := "Password reset successful"
 	html := `
 		<p>Hi %s,</p>
 		<p>Your password has been successfully reset.</p>
