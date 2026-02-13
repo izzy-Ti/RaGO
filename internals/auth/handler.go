@@ -111,7 +111,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	verificationUrl := ""
-	subject := "Password reset successfull"
+	subject := "Registration successful"
 	html := fmt.Sprintf(`
         <p>Hi %s,</p>
         <p>Welcome! Please verify your email by clicking the link below:</p>

@@ -44,6 +44,14 @@ func IsAuth(next http.Handler) http.Handler {
 			utils.WriteJson(w, http.StatusUnauthorized, resp)
 			return
 		}
+		if !user.IsAccVerified {
+			resp := Res{
+				Message: "Unauthorized please verify your account",
+				Success: false,
+			}
+			utils.WriteJson(w, http.StatusUnauthorized, resp)
+			return
+		}
 		ctx := context.WithValue(r.Context(), "user", user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
