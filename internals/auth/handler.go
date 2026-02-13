@@ -200,34 +200,13 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, http.StatusOK, res)
 }
 func SendVerifyOTP(w http.ResponseWriter, r *http.Request) {
+
 	expiresAt := time.Now().Add(24 * time.Hour).UnixMilli()
-	token, err := r.Cookie("token")
-	if err != nil {
-		res := Response{
-			Message: "Please login",
-			Success: false,
-		}
-		utils.WriteJson(w, http.StatusUnauthorized, res)
-		return
-	}
-	userId, err := utils.UserId(token.Value, []byte(jwtSecret))
-	if err != nil {
-		res := Response{
-			Message: "user not found",
-			Success: false,
-		}
-		utils.WriteJson(w, http.StatusUnauthorized, res)
-		return
-	}
-	user, err := utils.GetUserByID(userId)
-	if err != nil {
-		res := Response{
-			Message: "user not found",
-			Success: false,
-		}
-		utils.WriteJson(w, http.StatusUnauthorized, res)
-		return
-	}
+	var req otpREQ
+
+	utils.ParseJSON(r, &req)
+	var user models.User
+	db.DB.Where("email = ?", req.Email).First(&user)
 	user.VerifyOTP = utils.GenerateOTP()
 	user.OTPExpireAt = int64(expiresAt)
 	db.DB.Save(user)
