@@ -133,6 +133,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJson(w, http.StatusUnauthorized, res)
 		return
 	}
+	if !user.IsAccVerified {
+		resp := Response{
+			Message: "Unauthorized please verify your account",
+			Success: false,
+		}
+		utils.WriteJson(w, http.StatusUnauthorized, resp)
+		return
+	}
 	if err := bcrypt.CompareHashAndPassword(
 		[]byte(user.Password),
 		[]byte(req.Password),
