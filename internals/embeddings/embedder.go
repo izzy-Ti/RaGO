@@ -98,7 +98,7 @@ func RemoveSpecialChars(text string) string {
 func EmbedSite(url string) ([][]float32, error) {
 	ctx := context.Background()
 	html, _ := FetchRenderedHTML(url)
-
+	//stream byte for editing the html
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return nil, err
