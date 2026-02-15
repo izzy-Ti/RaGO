@@ -2,12 +2,14 @@ package rag
 
 import (
 	"bytes"
+	//"crypto/des"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strings"
+	//"github.com/izzy-Ti/RaGO/internals/utils"
 )
 
 func Generator(query string, contexts []string) (string, error) {
@@ -82,7 +84,7 @@ func RAG(query string) (string, error) {
 			},
 		},
 		"temperature": 0,
-		"reponse-format": map[string]interface{}{
+		"response_format": map[string]interface{}{
 			"type": "json_schema",
 			"json_schema": map[string]interface{}{
 				"name": "search desicion",
@@ -98,16 +100,50 @@ func RAG(query string) (string, error) {
 							"description": "True if database search is required. False otherwise.",
 						},
 					},
-					"required":             []string{"ans", "search"},
+					"required":             []string{"answer", "search"},
 					"additionalProperties": false,
 				},
 			},
 		},
 	}
-	contexts, err := Retriver(query)
+	json_body, _ := json.Marshal(body)
+	req, err := http.NewRequest(
+		"POST",
+		"https://api.groq.com/openai/v1/chat/completions",
+		bytes.NewBuffer(json_body),
+	)
 	if err != nil {
 		return "", err
 	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("GROQ_API_KEY"))
+	res, err := http.DefaultClient.Do(req)
+	type SearchDecision struct {
+		Ans    string `json:"answer"`
+		Search bool   `json:"search"`
+	}
+	type GroqResponse struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	var groqResp GroqResponse
+	json.NewDecoder(res.Body).Decode(&groqResp)
+	content := groqResp.Choices[0].Message.Content
 
-	return Generator(query, contexts)
+	var decision SearchDecision
+
+	json.Unmarshal([]byte(content), &decision)
+
+	if decision.Search {
+		contexts, err := Retriver(query)
+		if err != nil {
+			return "", err
+		}
+		return Generator(query, contexts)
+	} else {
+		return decision.Ans, nil
+	}
 }
