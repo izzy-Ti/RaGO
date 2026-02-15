@@ -12,10 +12,10 @@ import (
 
 func Generator(query string, contexts []string) (string, error) {
 	prompt := "You are part of the RAGO team. Speak in first person plural (use 'we', 'our', 'us'). " +
-	"Do NOT say 'they' or refer to RAGO in third person. " +
-	"Keep the answer concise (maximum 4–6 sentences). " +
-	"Be confident, supportive, and visionary while staying clear and professional.\n\n" +
-	"Use the following context to answer:\n\n" + strings.Join(contexts, "\n") + "\n\nQuestion: " + query + "\nAnswer:"
+		"Do NOT say 'they' or refer to RAGO in third person. " +
+		"Keep the answer concise (maximum 4–6 sentences). " +
+		"Be confident, supportive, and visionary while staying clear and professional.\n\n" +
+		"Use the following context to answer:\n\n" + strings.Join(contexts, "\n") + "\n\nQuestion: " + query + "\nAnswer:"
 
 	body := map[string]interface{}{
 		"model": "llama-3.1-8b-instant",
@@ -69,6 +69,41 @@ func Generator(query string, contexts []string) (string, error) {
 	return result.Choices[0].Message.Content, nil
 }
 func RAG(query string) (string, error) {
+	SystemPrompt := `Decide whether this query requires database retrieval. Return ONLY valid JSON.`
+	body := map[string]interface{}{
+		"model": "llama-3.1-8b-instant",
+		"messages": []map[string]string{
+			{"role": "system",
+				"content": SystemPrompt,
+			},
+			{
+				"role":    "user",
+				"content": query,
+			},
+		},
+		"temperature": 0,
+		"reponse-format": map[string]interface{}{
+			"type": "json_schema",
+			"json_schema": map[string]interface{}{
+				"name": "search desicion",
+				"schema": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"answer": map[string]interface{}{
+							"type":        "string",
+							"description": "Direct answer if retrieval is not needed. Empty if search is required.",
+						},
+						"search": map[string]interface{}{
+							"type":        "boolean",
+							"description": "True if database search is required. False otherwise.",
+						},
+					},
+					"required":             []string{"ans", "search"},
+					"additionalProperties": false,
+				},
+			},
+		},
+	}
 	contexts, err := Retriver(query)
 	if err != nil {
 		return "", err
