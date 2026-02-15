@@ -118,6 +118,11 @@ func RAG(query string) (string, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+os.Getenv("GROQ_API_KEY"))
 	res, err := http.DefaultClient.Do(req)
+	if res.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(res.Body)
+		return "", fmt.Errorf("Groq API error %d: %s", res.StatusCode, string(body))
+	}
+
 	type SearchDecision struct {
 		Ans    string `json:"answer"`
 		Search bool   `json:"search"`
@@ -131,11 +136,17 @@ func RAG(query string) (string, error) {
 	}
 	var groqResp GroqResponse
 	json.NewDecoder(res.Body).Decode(&groqResp)
+	if len(groqResp.Choices) == 0 {
+		return "", fmt.Errorf("Groq API returned no choices")
+	}
 	content := groqResp.Choices[0].Message.Content
+	fmt.Println("Groq returned:", content)
 
 	var decision SearchDecision
 
-	json.Unmarshal([]byte(content), &decision)
+	if err := json.Unmarshal([]byte(content), &decision); err != nil {
+		return "", fmt.Errorf("invalid JSON from Groq: %v", err)
+	}
 
 	if decision.Search {
 		contexts, err := Retriver(query)
