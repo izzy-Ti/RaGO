@@ -106,18 +106,26 @@ func RAG(query string) (string, error) {
 			},
 		},
 	}
-	json_body, _ := json.Marshal(body)
+	json_body, err := json.Marshal(body)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal request: %v", err)
+	}
 	req, err := http.NewRequest(
 		"POST",
 		"https://api.groq.com/openai/v1/chat/completions",
 		bytes.NewBuffer(json_body),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create request: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+os.Getenv("GROQ_API_KEY"))
 	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request: %v", err)
+	}
+	defer res.Body.Close()
+
 	if res.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(res.Body)
 		return "", fmt.Errorf("Groq API error %d: %s", res.StatusCode, string(body))
@@ -135,7 +143,9 @@ func RAG(query string) (string, error) {
 		} `json:"choices"`
 	}
 	var groqResp GroqResponse
-	json.NewDecoder(res.Body).Decode(&groqResp)
+	if err := json.NewDecoder(res.Body).Decode(&groqResp); err != nil {
+		return "", fmt.Errorf("failed to decode Groq response: %v", err)
+	}
 	if len(groqResp.Choices) == 0 {
 		return "", fmt.Errorf("Groq API returned no choices")
 	}
