@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -59,7 +60,17 @@ func Ask(w http.ResponseWriter, r *http.Request) {
 	}
 	db.DB.Create(&userMsg)
 
-	ans, err := rag.RAG(req.Query)
+	var chathis []models.Message
+	his := db.DB.Where("Chat_ID = ?", req.ChatID).Find(&chathis)
+	if his.Error != nil {
+		fmt.Println("DB error:", his.Error)
+	}
+	var contexts []string
+	for _, msg := range chathis {
+		contexts = append(contexts, msg.Role+" "+msg.Content)
+	}
+
+	ans, err := rag.RAG(req.Query, contexts)
 	if err != nil {
 		utils.WriteJson(w, http.StatusInternalServerError, Response{
 			Ans:     err.Error(),

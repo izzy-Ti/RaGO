@@ -12,12 +12,21 @@ import (
 	//"github.com/izzy-Ti/RaGO/internals/utils"
 )
 
-func Generator(query string, contexts []string) (string, error) {
+func Generator(query string, contexts []string, his []string) (string, error) {
+	var combinedCtx []string
+	if len(his) > 0 {
+		combinedCtx = append(combinedCtx, "Chat history:")
+		combinedCtx = append(combinedCtx, his...)
+	}
+	if len(contexts) > 0 {
+		combinedCtx = append(combinedCtx, "Context information:")
+		combinedCtx = append(combinedCtx, contexts...)
+	}
 	prompt := "You are part of the RAGO team. Speak in first person plural (use 'we', 'our', 'us'). " +
 		"Do NOT say 'they' or refer to RAGO in third person. " +
 		"Keep the answer concise (maximum 4–6 sentences). " +
 		"Be confident, supportive, and visionary while staying clear and professional.\n\n" +
-		"Use the following context to answer:\n\n" + strings.Join(contexts, "\n") + "\n\nQuestion: " + query + "\nAnswer:"
+		"Use the following context to answer:\n\n" + strings.Join(combinedCtx, "\n") + "\n\nQuestion: " + query + "\nAnswer:"
 
 	body := map[string]interface{}{
 		"model": "llama-3.1-8b-instant",
@@ -70,7 +79,7 @@ func Generator(query string, contexts []string) (string, error) {
 
 	return result.Choices[0].Message.Content, nil
 }
-func RAG(query string) (string, error) {
+func RAG(query string, his []string) (string, error) {
 	SystemPrompt := `Decide whether this query requires database retrieval. Return ONLY valid JSON.`
 	body := map[string]interface{}{
 		"model": "moonshotai/kimi-k2-instruct-0905",
@@ -162,7 +171,7 @@ func RAG(query string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return Generator(query, contexts)
+		return Generator(query, contexts, his)
 	}
 	return decision.Answer, nil
 }
