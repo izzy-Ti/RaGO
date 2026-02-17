@@ -73,7 +73,7 @@ func Generator(query string, contexts []string) (string, error) {
 func RAG(query string) (string, error) {
 	SystemPrompt := `Decide whether this query requires database retrieval. Return ONLY valid JSON.`
 	body := map[string]interface{}{
-		"model": "llama-3.1-8b-instant",
+		"model": "moonshotai/kimi-k2-instruct-0905",
 		"messages": []map[string]string{
 			{"role": "system",
 				"content": SystemPrompt,
@@ -87,13 +87,13 @@ func RAG(query string) (string, error) {
 		"response_format": map[string]interface{}{
 			"type": "json_schema",
 			"json_schema": map[string]interface{}{
-				"name": "search desicion",
+				"name": "search_desicion",
 				"schema": map[string]interface{}{
 					"type": "object",
 					"properties": map[string]interface{}{
 						"answer": map[string]interface{}{
 							"type":        "string",
-							"description": "Direct answer if retrieval is not needed. Empty if search is required.",
+							"description": "Direct answer if retrieval is not needed or if its only simple greetings like Hello, Hey there etc. Empty if search is required.",
 						},
 						"search": map[string]interface{}{
 							"type":        "boolean",
@@ -110,17 +110,16 @@ func RAG(query string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %v", err)
 	}
-	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + os.Getenv("GEMINI_API_KEY")
 	req, err := http.NewRequest(
 		"POST",
-		url,
+		"https://api.groq.com/openai/v1/chat/completions",
 		bytes.NewBuffer(json_body),
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	//req.Header.Set("Authorization", "Bearer "+os.Getenv("GEMINI_API_KEY"))
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("GROQ_API_KEY"))
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to send request: %v", err)
