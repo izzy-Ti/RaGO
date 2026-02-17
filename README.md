@@ -77,7 +77,7 @@ go mod download
 go run ./cmd/main.go
 
 <p align="center">
-<img src="https://www.google.com/search?q=https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZ4bm96ZzRneHBleGZ4eGZ4eGZ4eGZ4eGZ4eGZ4eGZ4JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCBmcm9tPXNlYXJjaCZjdD1n/L3X9GvptxDcuY/giphy.gif" width="300">
+<img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHhsa2V6bXFjNXBzc2EyeWEwaDJ6OXJibWR2NW5lM2NrMGcxbXN1NCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YPIrsRqqO7oB2/giphy.gif" width="300">
 </p>
 
 
