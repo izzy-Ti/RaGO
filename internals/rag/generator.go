@@ -110,16 +110,17 @@ func RAG(query string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %v", err)
 	}
+	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + os.Getenv("GEMINI_API_KEY")
 	req, err := http.NewRequest(
 		"POST",
-		"https://api.groq.com/openai/v1/chat/completions",
+		url,
 		bytes.NewBuffer(json_body),
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("GROQ_API_KEY"))
+	//req.Header.Set("Authorization", "Bearer "+os.Getenv("GEMINI_API_KEY"))
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to send request: %v", err)
@@ -131,10 +132,6 @@ func RAG(query string) (string, error) {
 		return "", fmt.Errorf("Groq API error %d: %s", res.StatusCode, string(body))
 	}
 
-	type SearchDecision struct {
-		Ans    string `json:"answer"`
-		Search bool   `json:"search"`
-	}
 	type GroqResponse struct {
 		Choices []struct {
 			Message struct {
@@ -152,10 +149,13 @@ func RAG(query string) (string, error) {
 	content := groqResp.Choices[0].Message.Content
 	fmt.Println("Groq returned:", content)
 
-	var decision SearchDecision
+	var decision struct {
+		Answer string `json:"answer"`
+		Search bool   `json:"search"`
+	}
 
 	if err := json.Unmarshal([]byte(content), &decision); err != nil {
-		return "", fmt.Errorf("invalid JSON from Groq: %v", err)
+		return "", fmt.Errorf("failed to unmarshal into decision struct: %v\nRaw content: %s", err, content)
 	}
 
 	if decision.Search {
@@ -164,7 +164,6 @@ func RAG(query string) (string, error) {
 			return "", err
 		}
 		return Generator(query, contexts)
-	} else {
-		return decision.Ans, nil
 	}
+	return decision.Answer, nil
 }

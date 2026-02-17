@@ -62,6 +62,7 @@ func Ask(w http.ResponseWriter, r *http.Request) {
 	ans, err := rag.RAG(req.Query)
 	if err != nil {
 		utils.WriteJson(w, http.StatusInternalServerError, Response{
+			Ans:     err.Error(),
 			Message: "RAG processing failed",
 			Success: false,
 		})
