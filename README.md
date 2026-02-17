@@ -1,7 +1,7 @@
 # 🐹 Go-RAG: Extreme AI Intelligence Engine
 
 <p align="center">
-  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZ4bm96ZzRneHBleGZ4eGZ4eGZ4eGZ4eGZ4eGZ4eGZ4JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCBmcm9tPXNlYXJjaCZjdD1n/3o7TKSjP3u8R4S2YwM/giphy.gif" width="600" alt="Go-RAG Animation">
+  <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDFjMTljZTZ2MGVpa2N5bDN4YmhpY3hyaHJ2N2p3MzY4ODdmb2tjNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/tiOnBLtDu8iQVOvIgV/giphy.gif" width="600" alt="Go-RAG Animation">
 </p>
 
 ---
