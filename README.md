@@ -48,8 +48,8 @@ Create a `.env` file in your root folder:
 
 ```env
 # Database & Auth
-DATABASE_URL=postgresql://postgres.ryaspdobmptunhmrkslr:8uh6zM07UhuX21Vv@aws-1-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require
-JWT_KEY="izzyGO"
+DATABASE_URL=postgresql:supabase_url
+JWT_KEY=any_secret_key
 PORT=8080
 APP_ENV=production
 
